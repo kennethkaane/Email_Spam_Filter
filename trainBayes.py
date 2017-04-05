@@ -27,6 +27,7 @@ SPAM_LABEL_FILE = DATA_DIR + "SPAMTrain.label"
 # say the size of the results in title
 RESULT_FILE     = BUILD_DIR + "spam_filter_results" + str(TRAINING_SIZE)
 
+
 # load the spam labels into array (col 0 = label, col 2 = emailName)
 def loadSpamLabel():
 	print "Loading spam labels"
@@ -40,7 +41,8 @@ def loadSpamLabel():
 
 	return spamLabel
 
-# calculat counts for pSpam, and pHam
+
+# calculate counts for pSpam, and pHam
 def calculateLabelCounts(spamLabel):
 	# P(spam) = total number of spam labels
 	pSpam = np.sum([1 for i in spamLabel if i["label"] == SPAM_LABEL])
@@ -48,6 +50,7 @@ def calculateLabelCounts(spamLabel):
 	pHam = np.sum([1 for i in spamLabel if i["label"] == HAM_LABEL])
 
 	return (pSpam, pHam)
+
 
 # build a vocabulary of available words
 def buildVocabulary(spamLabel):
@@ -70,6 +73,7 @@ def buildVocabulary(spamLabel):
 				vocabulary = np.append(vocabulary, word)
 
 	return vocabulary
+
 
 # determine the probability that a word is in spam, and ham
 def getWordProbabilities(spamLabel, pSpam, pHam, vocabulary):
@@ -131,15 +135,15 @@ def verifyResults(pSpamWord, pHamWord):
 		print "\tFAILED: pHammWord Check with value: ", pHamWordCheck
 
 
-# save the results to an output file
+# save the results to an output file in build directory
 def saveResults(pSpam, pHam, pSpamWord, pHamWord):
 	np.savez(RESULT_FILE, pSpam, pHam, pSpamWord, pHamWord)
 
 
-spamLabel = loadSpamLabel()
-pSpam, pHam = calculateLabelCounts(spamLabel)
-vocabulary = buildVocabulary(spamLabel)
-pSpamWord, pHamWord = getWordProbabilities(spamLabel, pSpam, pHam, vocabulary)
+spamLabel = loadSpamLabel() #load spam labels into array
+pSpam, pHam = calculateLabelCounts(spamLabel) #calculate counts of spam labels and ham labels
+vocabulary = buildVocabulary(spamLabel) # store vocabulary of available words
+pSpamWord, pHamWord = getWordProbabilities(spamLabel, pSpam, pHam, vocabulary) #determine the probability of a word is in spam or ham
 
-verifyResults(pSpamWord, pHamWord)
-saveResults(pSpam, pHam, pSpamWord, pHamWord)
+verifyResults(pSpamWord, pHamWord) #run tests to verify generated results
+saveResults(pSpam, pHam, pSpamWord, pHamWord) #save results to output file
