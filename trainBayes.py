@@ -3,18 +3,28 @@
 import numpy as np
 
 # the number of emails we want to train our spam filter on (max 4327)
+# 10  should take ~0.4 seconds
+# 100 should take ~44 secons
 TRAINING_SIZE = 10
+MAX_TRAINING_SIZE = 4326 # size of training data set
 
-# this file contains the labels of the emails
-#	 spam = 0, and ham = 1
-DATA_DIR = "data/"
+DATA_DIR  = "data/"
+BUILD_DIR = "build/"
 TRAIN_DIR = DATA_DIR + "training/"
-TEST_DIR = DATA_DIR + "testing/"
-SPAM_LABEL_FILE = DATA_DIR + "SPAMTrain.label"
+TEST_DIR  = DATA_DIR + "testing/"
+
 SPAM_LABEL = 0
 HAM_LABEL  = 1
 
+# this file contains the labels of the emails
+#	 spam = 0, and ham = 1
+SPAM_LABEL_FILE = DATA_DIR + "SPAMTrain.label"
+# say the size of the results in title
+RESULT_FILE     = BUILD_DIR + "spam_filter_results" + str(TRAINING_SIZE)
+
 # load the spam labels into array (col 0 = label, col 2 = emailName)
+print "Loading spam labels"
+
 spamLabel = np.loadtxt(SPAM_LABEL_FILE, dtype = {
 	"names": ("label", "emailName"),
 	"formats": ("i4", "S15",)})
@@ -29,6 +39,8 @@ pHam = np.sum([1 for i in spamLabel if i["label"] == HAM_LABEL])
 
 
 # build a vocabulary of available words
+print "Building vocabulary"
+
 vocabulary = np.array([])
 
 # go through the first TRAINING_SIZE emails in the dataset
@@ -51,6 +63,8 @@ spamWordCount = np.zeros(len(vocabulary))
 hamWordCount  = np.zeros(len(vocabulary))
 
 # To find word probabilities we must count the number of occurances each word
+print "Finding spam, and ham word counts"
+
 for email in spamLabel:
 	# open the current email
 	oFile = open(TRAIN_DIR + email["emailName"])
@@ -76,21 +90,36 @@ for email in spamLabel:
 		for word in emailVocabulary:
 			hamWordCount[np.where(vocabulary==word)] += 1
 
-pSpamWord = [i/pSpam for i in spamWordCount]
-pHamWord  = [i/pHam for i in hamWordCount]
+# probability a word is in spam, and ham
+print "Determining spam and ham word probabilities"
 
+pSpamWord = [wordCount/pSpam for wordCount in spamWordCount]
+pHamWord  = [wordCount/pHam for wordCount in hamWordCount]
 
 
 # DEBUGING
+print "\nRunning tests"
 # check that no probability is greater than one
-print "pSpamWord check:", np.sum([1 for i in pSpamWord if i > 1.0])
-print "pHamWord check:", np.sum([1 for i in pHamWord if i > 1.0])
+pSpamWordCheck = np.sum([1 for i in pSpamWord if i > 1.0])
+if pSpamWordCheck == 0.0:
+	print "\tPASSED: pSpamWord Check"
+else:
+	print "\tFAILED: pSpamWord Check with value: ", pSpamWordCheck
+
+pHamWordCheck = np.sum([1 for i in pHamWord if i > 1.0])
+if pHamWordCheck == 0.0:
+	print "\tPASSED: pHamWord Check"
+else:
+	print "\tFAILED: pHammWord Check with value: ", pHamWordCheck
+
+# save the results to an output file
+np.savez(RESULT_FILE, pSpam, pHam, pSpamWord, pHamWord)
 
 
 # DEBUGING
-print "spamLabel:", spamLabel
-print "pSpam:", pSpam
-print "pHam:", pHam
+#print "spamLabel:", spamLabel
+#print "pSpam:", pSpam
+#print "pHam:", pHam
 #print "vocabulary:", vocabulary
 #print "pSpamWord:", pSpamWord
 #print "pHamWord:", pHamWord
