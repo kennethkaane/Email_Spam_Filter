@@ -1,11 +1,16 @@
-# Note: uses python 2.7
+#run as: trainBayes.py TRAINING_SIZE
+#TRAINING_SIZE : integer between 1 and 4327
 
+# Note: uses python 2.7
+#!/usr/bin/python
+
+import sys
 import numpy as np
 
 # the number of emails we want to train our spam filter on (max 4327)
 # 10  should take ~0.4 seconds
 # 100 should take ~44 secons
-TRAINING_SIZE = 10
+TRAINING_SIZE = int(sys.argv[1])
 MAX_TRAINING_SIZE = 4326 # size of training data set
 
 DATA_DIR  = "data/"
