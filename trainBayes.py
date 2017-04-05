@@ -1,16 +1,23 @@
-# Note: uses python 2.7
+#Email Spam Filter - Naive Bayes Implementation
 
+#run as: trainBayes.py TRAINING_SIZE
+#argument TRAINING_SIZE : integer between 1 and 4327
+
+# Note: uses python 2.7
+#!/usr/bin/python
+
+import sys
 import numpy as np
 
 # the number of emails we want to train our spam filter on (max 4327)
 # 10  should take ~0.4 seconds
 # 100 should take ~44  seconds
 # 500 should take ~19  minutes
-TRAINING_SIZE = 10
+TRAINING_SIZE = int(sys.argv[1])
 MAX_TRAINING_SIZE = 4326 # size of training data set
 
+#data directories
 DATA_DIR  = "data/"
-BUILD_DIR = "build/"
 TRAIN_DIR = DATA_DIR + "training/"
 TEST_DIR  = DATA_DIR + "testing/"
 
@@ -20,8 +27,11 @@ HAM_LABEL  = 1
 # this file contains the labels of the emails
 #	 spam = 0, and ham = 1
 SPAM_LABEL_FILE = DATA_DIR + "SPAMTrain.label"
-# say the size of the results in title
-RESULT_FILE     = BUILD_DIR + "spam_filter_results" + str(TRAINING_SIZE)
+
+BUILD_DIR = "build/"
+
+RESULT_FILE = BUILD_DIR + "spam_filter_results" + str(TRAINING_SIZE)# the title includes the size of the results
+
 
 # load the spam labels into array (col 0 = label, col 2 = emailName)
 def loadSpamLabel():
@@ -36,7 +46,8 @@ def loadSpamLabel():
 
 	return spamLabel
 
-# calculat counts for pSpam, and pHam
+
+# calculate counts for pSpam, and pHam
 def calculateLabelCounts(spamLabel):
 	# P(spam) = total number of spam labels
 	pSpam = np.sum([1 for i in spamLabel if i["label"] == SPAM_LABEL])
@@ -76,7 +87,7 @@ def getWordProbabilities(spamLabel, pSpam, pHam, vocabulary):
 	spamWordCount = np.zeros(len(vocabulary))
 	hamWordCount  = np.zeros(len(vocabulary))
 
-	# To find word probabilities we must count the number of occurances each word
+	# To find word probabilities we must count the number of occurances of each word
 	print "Finding spam, and ham word counts"
 
 	for email in spamLabel:
@@ -116,7 +127,7 @@ def getWordProbabilities(spamLabel, pSpam, pHam, vocabulary):
 	return (pSpamWord, pHamWord)
 
 
-# run tests to make sure our results make sence
+# run tests to make sure our results make sense
 def verifyResults(pSpamWord, pHamWord):
 	print "\nRunning tests"
 	# check that no probability is greater than one
@@ -132,7 +143,6 @@ def verifyResults(pSpamWord, pHamWord):
 	else:
 		print "\tFAILED: pHammWord Check with value: ", pHamWordCheck
 
-
 # save the results to an output file
 def saveResults(pSpam, pHam, vocabulary, pSpamWord, pHamWord):
 	np.savez(RESULT_FILE, pSpam = pSpam,
@@ -142,10 +152,10 @@ def saveResults(pSpam, pHam, vocabulary, pSpamWord, pHamWord):
 	                      pHamWord = pHamWord)
 
 
-spamLabel = loadSpamLabel()
-pSpam, pHam = calculateLabelCounts(spamLabel)
-vocabulary = buildVocabulary(spamLabel)
-pSpamWord, pHamWord = getWordProbabilities(spamLabel, pSpam, pHam, vocabulary)
+spamLabel = loadSpamLabel() #load spam labels into array
+pSpam, pHam = calculateLabelCounts(spamLabel) #calculate counts of spam labels and ham labels
+vocabulary = buildVocabulary(spamLabel) # store vocabulary of available words
+pSpamWord, pHamWord = getWordProbabilities(spamLabel, pSpam, pHam, vocabulary) #determine the probability of a word is in spam and ham
 
 verifyResults(pSpamWord, pHamWord)
 saveResults(pSpam, pHam, vocabulary, pSpamWord, pHamWord)
