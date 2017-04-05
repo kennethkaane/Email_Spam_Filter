@@ -4,7 +4,8 @@ import numpy as np
 
 # the number of emails we want to train our spam filter on (max 4327)
 # 10  should take ~0.4 seconds
-# 100 should take ~44 secons
+# 100 should take ~44  seconds
+# 500 should take ~19  minutes
 TRAINING_SIZE = 10
 MAX_TRAINING_SIZE = 4326 # size of training data set
 
@@ -53,16 +54,19 @@ def buildVocabulary(spamLabel):
 	# go through the first TRAINING_SIZE emails in the dataset
 	for email in spamLabel:
 		# open the current email
-		oFile = open(TRAIN_DIR + email["emailName"])
+		iFile = open(TRAIN_DIR + email["emailName"])
 
 		# a list of words in the current email
-		for word in oFile.read().split():
+		for word in iFile.read().split():
 			# contains fails if the np.array is empty
 			if len(vocabulary) == 0:
 				vocabulary = np.append(vocabulary, word)
 			# if the word isn't already in the vocabulary, add it
 			elif not vocabulary.__contains__(word):
 				vocabulary = np.append(vocabulary, word)
+
+		# clsoe the input file
+		iFile.close()
 
 	return vocabulary
 
@@ -77,13 +81,13 @@ def getWordProbabilities(spamLabel, pSpam, pHam, vocabulary):
 
 	for email in spamLabel:
 		# open the current email
-		oFile = open(TRAIN_DIR + email["emailName"])
+		iFile = open(TRAIN_DIR + email["emailName"])
 
 		# form a list of words found in this email (no duplicates)
 		emailVocabulary = np.array([])
 
 		# a list of words in the current email
-		for word in oFile.read().split():
+		for word in iFile.read().split():
 			# contains fails if the np.array is empty
 			if len(emailVocabulary) == 0:
 				emailVocabulary = np.append(emailVocabulary, word)
@@ -99,6 +103,9 @@ def getWordProbabilities(spamLabel, pSpam, pHam, vocabulary):
 		elif email["label"] == HAM_LABEL:
 			for word in emailVocabulary:
 				hamWordCount[np.where(vocabulary==word)] += 1
+
+		# clsoe the input file
+		iFile.close()
 
 	# probability a word is in spam, and ham
 	print "Determining spam and ham word probabilities"
@@ -127,8 +134,12 @@ def verifyResults(pSpamWord, pHamWord):
 
 
 # save the results to an output file
-def saveResults(pSpam, pHam, pSpamWord, pHamWord):
-	np.savez(RESULT_FILE, pSpam, pHam, pSpamWord, pHamWord)
+def saveResults(pSpam, pHam, vocabulary, pSpamWord, pHamWord):
+	np.savez(RESULT_FILE, pSpam = pSpam,
+	                      pHam = pHam,
+	                      vocabulary = vocabulary,
+	                      pSpamWord = pSpamWord,
+	                      pHamWord = pHamWord)
 
 
 spamLabel = loadSpamLabel()
@@ -137,4 +148,4 @@ vocabulary = buildVocabulary(spamLabel)
 pSpamWord, pHamWord = getWordProbabilities(spamLabel, pSpam, pHam, vocabulary)
 
 verifyResults(pSpamWord, pHamWord)
-saveResults(pSpam, pHam, pSpamWord, pHamWord)
+saveResults(pSpam, pHam, vocabulary, pSpamWord, pHamWord)
