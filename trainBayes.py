@@ -1,5 +1,7 @@
+#Email Spam Filter - Naive Bayes Implementation
+
 #run as: trainBayes.py TRAINING_SIZE
-#TRAINING_SIZE : integer between 1 and 4327
+#argument TRAINING_SIZE : integer between 1 and 4327
 
 # Note: uses python 2.7
 #!/usr/bin/python
@@ -13,8 +15,8 @@ import numpy as np
 TRAINING_SIZE = int(sys.argv[1])
 MAX_TRAINING_SIZE = 4326 # size of training data set
 
+#data directories
 DATA_DIR  = "data/"
-BUILD_DIR = "build/"
 TRAIN_DIR = DATA_DIR + "training/"
 TEST_DIR  = DATA_DIR + "testing/"
 
@@ -24,8 +26,10 @@ HAM_LABEL  = 1
 # this file contains the labels of the emails
 #	 spam = 0, and ham = 1
 SPAM_LABEL_FILE = DATA_DIR + "SPAMTrain.label"
-# say the size of the results in title
-RESULT_FILE     = BUILD_DIR + "spam_filter_results" + str(TRAINING_SIZE)
+
+BUILD_DIR = "build/"
+
+RESULT_FILE = BUILD_DIR + "spam_filter_results" + str(TRAINING_SIZE)# the title includes the size of the results
 
 
 # load the spam labels into array (col 0 = label, col 2 = emailName)
@@ -81,7 +85,7 @@ def getWordProbabilities(spamLabel, pSpam, pHam, vocabulary):
 	spamWordCount = np.zeros(len(vocabulary))
 	hamWordCount  = np.zeros(len(vocabulary))
 
-	# To find word probabilities we must count the number of occurances each word
+	# To find word probabilities we must count the number of occurances of each word
 	print "Finding spam, and ham word counts"
 
 	for email in spamLabel:
@@ -118,7 +122,7 @@ def getWordProbabilities(spamLabel, pSpam, pHam, vocabulary):
 	return (pSpamWord, pHamWord)
 
 
-# run tests to make sure our results make sence
+# run tests to make sure our results make sense
 def verifyResults(pSpamWord, pHamWord):
 	print "\nRunning tests"
 	# check that no probability is greater than one
@@ -143,7 +147,7 @@ def saveResults(pSpam, pHam, pSpamWord, pHamWord):
 spamLabel = loadSpamLabel() #load spam labels into array
 pSpam, pHam = calculateLabelCounts(spamLabel) #calculate counts of spam labels and ham labels
 vocabulary = buildVocabulary(spamLabel) # store vocabulary of available words
-pSpamWord, pHamWord = getWordProbabilities(spamLabel, pSpam, pHam, vocabulary) #determine the probability of a word is in spam or ham
+pSpamWord, pHamWord = getWordProbabilities(spamLabel, pSpam, pHam, vocabulary) #determine the probability of a word is in spam and ham
 
 verifyResults(pSpamWord, pHamWord) #run tests to verify generated results
 saveResults(pSpam, pHam, pSpamWord, pHamWord) #save results to output file
