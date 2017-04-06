@@ -2,7 +2,7 @@
 # determines if the given email is spam or not, by using the Bayes filter from trainBayes.py
 
 # run as: spamFilter.py BAYES_FILTER EMAIL_NAME
-# ie:python2.7 spamFilter.py build/spam_filter_results100.npz data/training/TRAIN_04232.eml
+# ie: python2.7 spamFilter.py build/spam_filter_results10.npz data/training/TRAIN_04232.eml
 
 
 # Note: uses python 2.7
@@ -82,7 +82,7 @@ def getPEmailGivenHam(vocabulary, attributeValue, pHamWord):
 
 (pSpam, pHam, vocabulary, pSpamWord, pHamWord) = loadFilter(BAYES_FILTER) #load the filter result from trainBayes.py
 emailVocabulary = getEmailVocabulary(EMAIL_NAME, vocabulary) #get vocabulary of input email
-attributeValue = getAttributeValue(emailVocabulary, vocabulary) 
+attributeValue = getAttributeValue(emailVocabulary, vocabulary)
 
 pEmailGivenSpam = getPEmailGivenSpam(vocabulary, attributeValue, pSpamWord) #get the P(Email|Spam)
 pEmailGivenHam = getPEmailGivenHam(vocabulary, attributeValue, pHamWord) # get the P(Email|Ham)
@@ -90,8 +90,12 @@ pEmailGivenHam = getPEmailGivenHam(vocabulary, attributeValue, pHamWord) # get t
 #computes and prints probability of input email being Ham and Spam
 if (pEmailGivenHam*pHam + pEmailGivenSpam*pSpam) != 0:
 	pHamGivenEmail = pEmailGivenHam*pHam / (pEmailGivenHam*pHam + pEmailGivenSpam*pSpam)
-	pSpamGivenEmail=1-pHamGivenEmail
-	print "Probability of", EMAIL_NAME, "being Ham is", pHamGivenEmail
-	print "Probability of", EMAIL_NAME, "being Spam is", pSpamGivenEmail
+	pSpamGivenEmail = 1-pHamGivenEmail
+	print "Probability of", EMAIL_NAME, "being Ham is: ", pHamGivenEmail
+	print "Probability of", EMAIL_NAME, "being Spam is:", pSpamGivenEmail
+	if pSpamGivenEmail > 0.5:
+		print "final prediciton: SPAM"
+	if pSpamGivenEmail < 0.5:
+		print "final prediciton: HAM"
 else:
 	print "Error: pEmailGivenHam or pEmailGivenSpam is equal to zero"

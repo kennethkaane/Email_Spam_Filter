@@ -1,12 +1,14 @@
 # Email Spam Filter - Naive Bayes Implementation Trainer
 
-# run as: trainBayes.py TRAINING_SIZE
+# run as: trainBayes.py TRAINING_SIZE VOCABULARY_LIMIT
 # argument TRAINING_SIZE : integer between 1 and 4327
+# ie: python2.7 trainBayes.py 10 100
 
 # Note: uses python 2.7
 #!/usr/bin/python
 
 import sys
+import argparse
 import numpy as np
 
 # the number of emails we want to train our spam filter on (max 4327)
@@ -15,6 +17,11 @@ import numpy as np
 # 500 should take ~19  minutes
 TRAINING_SIZE = int(sys.argv[1])
 MAX_TRAINING_SIZE = 4326 # size of training data set
+
+# limit of the size of bag of words
+VOCABULARY_LIMIT = 100
+if sys.argv[2] > 1:
+	VOCABULARY_LIMIT = int(sys.argv[2])
 
 #data directories
 DATA_DIR  = "data/"
@@ -32,9 +39,6 @@ BUILD_DIR = "build/"
 
 # the title includes the size of the results
 RESULT_FILE = BUILD_DIR + "spam_filter_results" + str(TRAINING_SIZE)
-VOCABULARY_LIMIT = 100
-# WORD_PROBABILITY_THRESHOLD = 0.01
-
 
 # load the spam labels into array (col 0 = label, col 2 = emailName)
 def loadSpamLabel():
@@ -58,6 +62,7 @@ def calculateLabelCounts(spamLabel):
 	pHam = np.sum([1 for i in spamLabel if i["label"] == HAM_LABEL])
 
 	return (pSpam, pHam)
+
 
 # build a vocabulary of available words
 def buildVocabulary(spamLabel):
@@ -92,6 +97,7 @@ def buildVocabulary(spamLabel):
 		iFile.close()
 
 	return vocabulary, frequency
+
 
 # determine the probability that a word is in spam, and ham
 def getWordProbabilities(spamLabel, spamCount, hamCount, vocabulary):
@@ -138,6 +144,7 @@ def getWordProbabilities(spamLabel, spamCount, hamCount, vocabulary):
 
 	return (pSpamWord, pHamWord)
 
+
 # clean up the results to avoid a zero frequency problem
 def cleanResults(pSpamWord, pHamWord):
 	pSpamWord = [i if (i != 0.0) and
@@ -146,6 +153,7 @@ def cleanResults(pSpamWord, pHamWord):
 	                  (i != 1.0) else 0.5 for i in pHamWord]
 
 	return pSpamWord, pHamWord
+
 
 # run tests to make sure our results make sense
 def verifyResults(pSpamWord, pHamWord):
@@ -162,6 +170,7 @@ def verifyResults(pSpamWord, pHamWord):
 		print "\tPASSED: pHamWord Check"
 	else:
 		print "\tFAILED: pHammWord Check with value: ", pHamWordCheck
+
 
 # save the results to an output file
 def saveResults(pSpam, pHam, vocabulary, pSpamWord, pHamWord):
