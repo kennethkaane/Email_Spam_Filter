@@ -19,4 +19,17 @@
 	5. use Baye's theorem to find p(Spam|Email)
 
 - **testFilter.py**: runs the spamFilter an given number of times to determine its accuracy.
-	- currently this is at 71%
+	- currently this is at 88%
+
+
+## Demo
+``` bash
+# train the Bayes filter
+python2.7 trainBayes.py 50 100
+
+# check if a given email is spam
+python2.7 spamFilter.py build/spam_filter_results50.npz data/training/TRAIN_04232.eml
+
+# determine the accuracy of the filter
+python2.7 testFilter.py 50 100
+```

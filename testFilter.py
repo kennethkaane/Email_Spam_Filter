@@ -55,7 +55,7 @@ for i in range(EMAIL_START_NUM, EMAIL_START_NUM + NUM_ITER):
 		print "predicition: HAM"
 
 	if spamLabel[i]["label"] == 0:
-		print "actual:      SPAM"
+		print "actual:      SPAM\n"
 	else:
 		print "actual:      HAM\n"
 
