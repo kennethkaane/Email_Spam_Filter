@@ -1,7 +1,11 @@
-# AI Final Project
+# Email Spam Filter - Naive Bayes Implementation Filter
 # determines is the given email is spam or not, by using the Bayes filter from trainBayes.py
+
+# run as: trainBayes.py BAYES_FILTER EMAIL_NAME
+
 # Note: uses python 2.7
 
+import sys
 import numpy as np
 
 DATA_DIR  = "data/"
@@ -10,10 +14,10 @@ TRAIN_DIR = DATA_DIR + "training/"
 TEST_DIR  = DATA_DIR + "testing/"
 
 # take in file location of bayes results
-BAYES_FILTER = BUILD_DIR + "spam_filter_results" + str(10) + ".npz"
-EMAIL_NAME   = TRAIN_DIR + "TRAIN_04326.eml"
-
-EPSILON = 0.5
+# BAYES_FILTER = BUILD_DIR + "spam_filter_results" + str(10) + ".npz"
+# EMAIL_NAME   = TRAIN_DIR + "TRAIN_04326.eml"
+BAYES_FILTER = sys.argv[1]
+EMAIL_NAME   = sys.argv[2]
 
 # load the filter that was made in trainBayes.py
 def loadFilter(filterName):
@@ -49,6 +53,7 @@ def getAttributeValue(emailVocabulary, vocabulary):
 
 	return attributeValue
 
+# get the P(Email|Spam)
 def getPEmailGivenSpam(vocabulary, attributeValue, pSpamWord):
 	pEmailGivenSpam = 1.0
 	for i in range(len(vocabulary)):
@@ -58,6 +63,7 @@ def getPEmailGivenSpam(vocabulary, attributeValue, pSpamWord):
 			pEmailGivenSpam *= pSpamWord[i]
 	return pEmailGivenSpam
 
+# get the P(Email|Ham)
 def getPEmailGivenHam(vocabulary, attributeValue, pHamWord):
 	pEmailGivenHam = 1.0
 	for i in range(len(vocabulary)):
@@ -72,6 +78,10 @@ emailVocabulary = getEmailVocabulary(EMAIL_NAME, vocabulary)
 attributeValue = getAttributeValue(emailVocabulary, vocabulary)
 
 pEmailGivenSpam = getPEmailGivenSpam(vocabulary, attributeValue, pSpamWord)
-print pEmailGivenSpam
 pEmailGivenHam = getPEmailGivenHam(vocabulary, attributeValue, pHamWord)
-print pEmailGivenHam
+
+if (pEmailGivenHam*pHam + pEmailGivenSpam*pSpam) != 0:
+	pHamGivenEmail = pEmailGivenHam*pHam / (pEmailGivenHam*pHam + pEmailGivenSpam*pSpam)
+	print "Probability of", EMAIL_NAME, "being Ham is", pHamGivenEmail
+else:
+	print "Error: pEmailGivenHam or pEmailGivenSpam is equal to zero"

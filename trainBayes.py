@@ -1,7 +1,7 @@
-#Email Spam Filter - Naive Bayes Implementation
+# Email Spam Filter - Naive Bayes Implementation Trainer
 
-#run as: trainBayes.py TRAINING_SIZE
-#argument TRAINING_SIZE : integer between 1 and 4327
+# run as: trainBayes.py TRAINING_SIZE
+# argument TRAINING_SIZE : integer between 1 and 4327
 
 # Note: uses python 2.7
 #!/usr/bin/python
@@ -30,7 +30,10 @@ SPAM_LABEL_FILE = DATA_DIR + "SPAMTrain.label"
 
 BUILD_DIR = "build/"
 
-RESULT_FILE = BUILD_DIR + "spam_filter_results" + str(TRAINING_SIZE)# the title includes the size of the results
+# the title includes the size of the results
+RESULT_FILE = BUILD_DIR + "spam_filter_results" + str(TRAINING_SIZE)
+VOCABULARY_LIMIT = 100
+# WORD_PROBABILITY_THRESHOLD = 0.01
 
 
 # load the spam labels into array (col 0 = label, col 2 = emailName)
@@ -61,6 +64,7 @@ def buildVocabulary(spamLabel):
 	print "Building vocabulary"
 
 	vocabulary = np.array([])
+	frequency  = np.array([])
 
 	# go through the first TRAINING_SIZE emails in the dataset
 	for email in spamLabel:
@@ -72,17 +76,25 @@ def buildVocabulary(spamLabel):
 			# contains fails if the np.array is empty
 			if len(vocabulary) == 0:
 				vocabulary = np.append(vocabulary, word)
-			# if the word isn't already in the vocabulary, add it
-			elif not vocabulary.__contains__(word):
-				vocabulary = np.append(vocabulary, word)
+				frequency  = np.append(frequency, 1)
 
-		# clsoe the input file
+			# if the word is already in the vocabulary, add one to frequency
+			elif vocabulary.__contains__(word):
+				frequency[np.where(vocabulary==word)] += 1
+
+			# if the word isn't already in the vocabulary, add it
+			else:
+				vocabulary = np.append(vocabulary, word)
+				frequency  = np.append(frequency, 1)
+
+
+		# close the input file
 		iFile.close()
 
-	return vocabulary
+	return vocabulary, frequency
 
 # determine the probability that a word is in spam, and ham
-def getWordProbabilities(spamLabel, pSpam, pHam, vocabulary):
+def getWordProbabilities(spamLabel, spamCount, hamCount, vocabulary):
 	# these arrays should be the same shape as the vocabulary, and start at zero
 	spamWordCount = np.zeros(len(vocabulary))
 	hamWordCount  = np.zeros(len(vocabulary))
@@ -115,17 +127,25 @@ def getWordProbabilities(spamLabel, pSpam, pHam, vocabulary):
 			for word in emailVocabulary:
 				hamWordCount[np.where(vocabulary==word)] += 1
 
-		# clsoe the input file
+		# close the input file
 		iFile.close()
 
 	# probability a word is in spam, and ham
 	print "Determining spam and ham word probabilities"
 
-	pSpamWord = [wordCount/pSpam for wordCount in spamWordCount]
-	pHamWord  = [wordCount/pHam for wordCount in hamWordCount]
+	pSpamWord = [wordCount/spamCount for wordCount in spamWordCount]
+	pHamWord  = [wordCount/hamCount for wordCount in hamWordCount]
 
 	return (pSpamWord, pHamWord)
 
+# clean up the results to avoid a zero frequency problem
+def cleanResults(pSpamWord, pHamWord):
+	pSpamWord = [i if (i != 0.0) and
+	                  (i != 1.0) else 0.5 for i in pSpamWord]
+	pHamWord  = [i if (i != 0.0) and
+	                  (i != 1.0) else 0.5 for i in pHamWord]
+
+	return pSpamWord, pHamWord
 
 # run tests to make sure our results make sense
 def verifyResults(pSpamWord, pHamWord):
@@ -152,10 +172,30 @@ def saveResults(pSpam, pHam, vocabulary, pSpamWord, pHamWord):
 	                      pHamWord = pHamWord)
 
 
-spamLabel = loadSpamLabel() #load spam labels into array
-pSpam, pHam = calculateLabelCounts(spamLabel) #calculate counts of spam labels and ham labels
-vocabulary = buildVocabulary(spamLabel) # store vocabulary of available words
-pSpamWord, pHamWord = getWordProbabilities(spamLabel, pSpam, pHam, vocabulary) #determine the probability of a word is in spam and ham
+# load spam labels into array
+spamLabel = loadSpamLabel()
 
+# calculate counts of spam labels and ham labels
+spamCount, hamCount = calculateLabelCounts(spamLabel)
+pSpam = float(spamCount) / TRAINING_SIZE
+pHam = float(hamCount) / TRAINING_SIZE
+
+# store vocabulary of available words
+vocabulary, vocabularyFrequency = buildVocabulary(spamLabel)
+
+# only except the words with the highest frequency
+vocabulary = vocabulary[np.argsort(vocabularyFrequency)[::-1][:VOCABULARY_LIMIT]]
+
+# FOR DEBUGGING
+# print vocabularyFrequency[np.argsort(vocabularyFrequency)[::-1][:VOCABULARY_LIMIT]]
+
+# determine the probability of a word is in spam and ham
+pSpamWord, pHamWord = getWordProbabilities(spamLabel, spamCount, hamCount, vocabulary)
+
+# clean up the results to avoid a zero frequency problem
+pSpamWord, pHamWord = cleanResults(pSpamWord, pHamWord)
+
+
+# verify and save the results
 verifyResults(pSpamWord, pHamWord)
 saveResults(pSpam, pHam, vocabulary, pSpamWord, pHamWord)
